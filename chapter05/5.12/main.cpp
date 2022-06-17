@@ -4,13 +4,11 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 void PrintVec(const std::vector<int> &vec)
 {
-    for(auto v:vec)
-    {
-        std::cout << v << " ";
-    }
+    std::for_each(vec.begin(), vec.end(), [](int x){std::cout << x << " ";});
     std::cout<<std::endl;
 }
 
@@ -20,13 +18,18 @@ std::map<std::string, int> CompareVecs(const std::vector<int> &reference, const 
     
     int bullCount=0;
     int cowCount=0;
+
     for(int i=0; i<entered.size(); i++)
     {
-        if(entered[i] == reference[i]) bullCount++;
         for(int j=0; j<reference.size(); j++)
-        {
-            if(j==i) continue;
-            if(entered[i] == reference[j]) cowCount++;
+        {           
+            if(entered[i] == reference[j])
+            {
+                if(j==i) 
+                    bullCount++;
+                else
+                    cowCount++;
+            }
         }
     }
 
@@ -44,10 +47,14 @@ std::map<std::string, int> CompareVecs(const std::vector<int> &reference, const 
     return output;
 }
 
-bool NeedToLoop(const std::map<std::string, int> &seen, const std::vector<int> & reference)
+bool NeedToLoop(const std::map<std::string, int> &seen, 
+                const std::vector<int> & reference)
 {
     if(seen.at("Bull")==reference.size())
+    {
+        std::cout << "All numbers correctly found." << std::endl;
         return false;
+    }   
     else
         return true;
 }
@@ -55,15 +62,19 @@ bool NeedToLoop(const std::map<std::string, int> &seen, const std::vector<int> &
 std::vector<int> HandleInput()
 {
     std::vector<int> output;
-    std::cout << "Enter 4 different digits";
-    std::cin.ignore();
+    std::cout << "Enter 4 different digits: ";
 
-    for(char input; std::cin >> input;)
+    for(int input; output.size()<4;)
     {   
-        std::cout << input << std::endl;
-        if(input == '|' || input < '0' || input > '9') break;
-        else output.push_back(input-'0');
+        std::cin >> input;
+        if (!std::cin) 
+        {
+            throw std::runtime_error("Couldn't read integer from input\n");
+        }
+        output.push_back(input);
     }
+
+    std::cin.ignore();
 
     return output;
 }
@@ -73,16 +84,23 @@ int main()
 {
     std::vector<int> referenceVec = {1,2,3,4};
 
-    std::vector<int> enteredVec;
     bool keepLooping = true;
 
     while(keepLooping)
     {
-        std::vector<int> enteredVec = HandleInput();
-
-        std::map<std::string, int> seen = CompareVecs(referenceVec, enteredVec);
-
-        keepLooping = NeedToLoop(seen, referenceVec);
+        try
+        {        
+            std::vector<int> enteredVec = HandleInput();
+            std::map<std::string, int> seen = CompareVecs(referenceVec, enteredVec);
+            keepLooping = NeedToLoop(seen, referenceVec);
+        }
+        catch(std::runtime_error &e)
+        {
+            std::cerr << e.what();
+            std::cin.clear();
+            std::cin.ignore();
+        }
     };
+
     return 0;
 }
