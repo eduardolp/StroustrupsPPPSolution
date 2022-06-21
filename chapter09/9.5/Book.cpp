@@ -22,7 +22,7 @@ ISBN::ISBN(std::string n1, std::string n2, std::string n3, char x)
         throw Invalid{};
 }
 
-std::string ISBN::ISBNString()
+std::string ISBN::ISBNString() const
 {
     return n1 + "-" + n2 + "-" + n3 + "-" + x; 
 }
@@ -35,12 +35,17 @@ bool operator==(const ISBN &i1, const ISBN &i2)
         return false;
 }
 
-Book::Book(ISBN isbn, std::string title, std::string author, std::string copyright, bool checkOutStatus)
-    : isbn{isbn}, title{title}, author{author}, copyright{copyright}, checkOutStatus{checkOutStatus}{}
+Book::Book(ISBN isbn, 
+            std::string title, 
+            std::string author, 
+            std::string copyright, 
+            Genre genre,
+            bool checkOutStatus)
+    : isbn{isbn}, title{title}, author{author}, copyright{copyright}, genre{genre}, checkOutStatus{checkOutStatus}{}
 
 const Book& defaultBook()
 {
-    static Book bb{ {"0","0","0",'a'}, "", "", "", false};
+    static Book bb{ {"0","0","0",'a'}, "", "", "",Genre::unknown, false};
     return bb;
 }
 
@@ -49,6 +54,49 @@ Book::Book()
         title{defaultBook().GetTitle()},
         author{defaultBook().GetAuthor()},
         copyright{defaultBook().GetCopyright()},
+        genre{defaultBook().GetGenre()},
         checkOutStatus{defaultBook().GetcheckOutStatus()}
 {
+}
+
+void Book::CheckIn()
+{
+    if(!checkOutStatus)
+        std::cout << "Book \"" << title << "\" is already in the library. Can't check it in." << std::endl;
+    else
+    {
+        std::cout << "Checking \"" << title << "\" in." << std::endl;
+        checkOutStatus = false;
+    }
+};
+
+void Book::CheckOut()
+{
+    if(checkOutStatus)
+        std::cout << "Book \"" << title << "\" not in the library. Can't check it out." << std::endl;
+    else
+    {
+        std::cout << "Checking \"" << title << "\" out." << std::endl;
+        checkOutStatus = true;
+    }
+};
+
+
+bool operator==(const Book &b1, const Book &b2)
+{
+    if((b1.isbn == b2.isbn))
+        return true;
+    else return false;
+}
+
+bool operator!=(const Book &b1, const Book &b2)
+{
+    if(!(b1.isbn == b2.isbn))
+        return true;
+    else return false;
+}
+
+std::ostream &operator<<(std::ostream &os, const Book &bb)
+{
+    return os << "Book: " << bb.title << "\n" << "Author: " << bb.author << "\n" << "ISBN: " << bb.isbn.ISBNString();
 }
